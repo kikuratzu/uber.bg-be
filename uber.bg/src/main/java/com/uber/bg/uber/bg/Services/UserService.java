@@ -7,6 +7,7 @@ import com.uber.bg.uber.bg.Enumerations.USER_ROLE;
 import com.uber.bg.uber.bg.Repositories.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.FileAlreadyExistsException;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -34,7 +36,13 @@ public class UserService {
     @Autowired
     JwtService service;
 
+    @Autowired
+    BlacklistTokenService blacklistTokenService;
+
     private final UserRepository userRepository;
+
+    @Autowired
+    RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     public UserService(UserRepository userRepository) {
@@ -53,6 +61,7 @@ public class UserService {
                 .builder()
                 .username(dto.getUsername())
                 .email(dto.getEmail())
+                    .phoneNumber(dto.getPhoneNumber())
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .firstName(dto.getFirstName())
                 .lastName(dto.getLastName())
@@ -87,6 +96,15 @@ public class UserService {
         Map<UUID, String> idStringMap = new HashMap<>();
         idStringMap.put(user.getId(), token);
         return idStringMap;
+    }
+
+    @Transactional
+    public void logout(final String token){
+    long RemainingTimeInMillis = service.getRemainingExpirationTime(token);
+     if (RemainingTimeInMillis > 0){
+         blacklistTokenService.blacklistToken(token, RemainingTimeInMillis);
+     }
+
     }
 
 

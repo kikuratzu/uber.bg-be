@@ -1,5 +1,6 @@
 package com.uber.bg.uber.bg;
 
+import com.uber.bg.uber.bg.Services.BlacklistTokenService;
 import com.uber.bg.uber.bg.Services.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -21,10 +22,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final BlacklistTokenService blacklistTokenService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService, BlacklistTokenService blacklistTokenService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.blacklistTokenService = blacklistTokenService;
     }
 
     @Override
@@ -58,6 +61,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
+        }
+        if (blacklistTokenService.isTokenBlacklisted(jwt)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token has been revoked/blacklisted.");
+            return;
         }
         filterChain.doFilter(request, response);
     }

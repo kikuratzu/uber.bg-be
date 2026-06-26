@@ -36,6 +36,12 @@ public class JwtService {
                 .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
+    // Add this helper method inside your existing JwtService class:
+    public long getRemainingExpirationTime(String token) {
+        Date expiration = extractClaim(token, Claims::getExpiration);
+        return expiration.getTime() - System.currentTimeMillis();
+    }
+
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
