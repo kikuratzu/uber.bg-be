@@ -1,7 +1,6 @@
-package com.uber.bg.uber.bg.Repositories;
+package com.uber.bg.uber.bg.Repositories.Jpa;
 
 import com.uber.bg.uber.bg.Entities.Ride;
-import com.uber.bg.uber.bg.Entities.User;
 import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
