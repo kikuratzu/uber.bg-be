@@ -15,6 +15,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @Controller
@@ -32,12 +33,13 @@ public class DriverPassengerChatController {
 
     @MessageMapping("/chat/{rideId}")
     @SendTo("/topic/ride/{rideId}")
+    @PreAuthorize("hasAnyRole('DRIVER','PASSENGER','ADMIN')")
     public ChatEntityDTO handleRideChat(
-            @DestinationVariable final UUID rideId,
+            @DestinationVariable("rideId") final UUID rideId,
             @Payload ChatEntityDTO dto
+
     ) {
-        System.out.println("!!! CONTROLLER METHOD EXECUTED SUCCESSFULLY !!!");
-        log.info("Received chat message for ride: {}", rideId);
+        System.out.println("hehehehaw");
         return chatService.handleRideChat(rideId, dto);
     }
 
