@@ -1,12 +1,15 @@
 package com.uber.bg.uber.bg.Entities;
 
+import com.mongodb.lang.Nullable;
 import com.uber.bg.uber.bg.Entities.BaseEntity;
 import com.uber.bg.uber.bg.Enumerations.USER_ROLE;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Builder
@@ -42,8 +45,8 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private USER_ROLE role;
 
-   // @Column(name= "rating")
-   // private Double rating;
+   @Column(name= "rating")
+    private Double rating;
 
     @OneToMany(mappedBy = "passenger", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Ride> rideHistory = new ArrayList<>();
@@ -52,6 +55,14 @@ public class User extends BaseEntity {
     private List<Ride> driveHistory = new ArrayList<>();
 
 
+    @Builder.Default
+    @ManyToMany
+    @JoinTable(
+            name = "driver_cars",
+            joinColumns = @JoinColumn(name = "driver_id"),
+            inverseJoinColumns = @JoinColumn(name = "car_id")
+    )
+    private Set<Car> vehicles = new HashSet<>();
 
 }
 

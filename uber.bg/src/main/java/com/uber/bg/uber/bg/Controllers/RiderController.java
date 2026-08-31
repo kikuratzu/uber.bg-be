@@ -1,5 +1,8 @@
 package com.uber.bg.uber.bg.Controllers;
 
+import com.uber.bg.uber.bg.DTOs.LocationPingDTO;
+import com.uber.bg.uber.bg.DTOs.RequestRideDTO;
+import com.uber.bg.uber.bg.Entities.LocationPing;
 import com.uber.bg.uber.bg.Entities.User;
 import com.uber.bg.uber.bg.Services.RiderService;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +29,8 @@ public class RiderController {
 
     @PostMapping("requestRide/{passengerId}")
     @PreAuthorize("hasRole('PASSENGER')")
-    public HttpStatus requestRider(@PathVariable final UUID passengerId, @RequestParam final String coordinates) {
-        service.requestRide(passengerId, coordinates);
+    public HttpStatus requestRider(@PathVariable final UUID passengerId, @RequestBody RequestRideDTO dto) {
+        service.requestRide(passengerId, dto.getPickup(), dto.getDestination(), dto.getPeople());
         return HttpStatus.ACCEPTED;
     }
 

@@ -104,7 +104,10 @@ public class DriverService {
 
             List<Map<String,String>> availableRides = new ArrayList<>();
             rides.forEach(x-> availableRides.add(Map.of(
-                    "location", x.getPickupLocation(),
+                    "pickupLongitude", String.valueOf(x.getPickupLocation().getLongitude()),
+                    "pickupLatitude", String.valueOf(x.getPickupLocation().getLatitude()),
+                    "destinationLongitude", String.valueOf(x.getDestinationLocation().getLongitude()),
+                    "destinationLatitude", String.valueOf(x.getDestinationLocation().getLatitude()),
                     "people", String.valueOf(x.getPeople()),
                     "rideId", x.getId().toString()
             )));
@@ -144,7 +147,7 @@ public class DriverService {
                 driverId, rideId, dto.getLongitude(), dto.getLatitude());
 
         String coordinates = dto.getLongitude() + "," + dto.getLatitude();
-        String currentKey = "driver:current:" + driverId;
+        String currentKey = "driver:current:stream:" + driverId;
         String historyKey = "ride:history:coordinates:" + rideId;
 
         redisTemplate.executePipelined((RedisCallback<Object>) connection -> {
@@ -170,6 +173,39 @@ public class DriverService {
 
         redisTemplate.delete("ride:history:coordinates:"+id.toString());
         redisTemplate.delete("ride:"+id.toString());
+    }
+
+    public void goOnline(final UUID id, final LocationPingDTO dto) {
+        if (id == null || dto == null) {
+            throw new IllegalArgumentException("Driver ID and complete coordinate parameters must be provided.");
+        }
+
+        String driverIdStr = id.toString();
+        String hashKey = "driver:current:" + driverIdStr;
+        String geoIndexKey = "drivers:active";
+
+        log.info("Processing go-online initialization request for driverId: {} at Lng: {}, Lat: {}",
+                driverIdStr, dto.getLongitude(), dto.getLatitude());
+
+        // 1. Store rich structured status metadata inside a Redis Hash
+        Map<String, String> driverProfileMap = Map.of(
+                "status", "ONLINE",
+                "longitude", String.valueOf(dto.getLongitude()),
+                "latitude", String.valueOf(dto.getLatitude()),
+                "updatedAt", java.time.Instant.now().toString()
+        );
+
+        redisTemplate.opsForHash().putAll(hashKey, driverProfileMap);
+
+        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(30));
+
+        redisTemplate.opsForGeo().add(
+                geoIndexKey,
+                new org.springframework.data.geo.Point(dto.getLongitude(), dto.getLatitude()),
+                driverIdStr
+        );
+
+        log.debug("Successfully created hash index '{}' and updated geospatial matching ring cluster.", hashKey);
     }
 
 

@@ -21,13 +21,14 @@ public class RedisConfiguration {
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
         template.setKeySerializer(stringSerializer);
         template.setHashKeySerializer(stringSerializer);
+        template.setValueSerializer(stringSerializer);
 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
 
         RedisSerializer<Object> jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
-        template.setValueSerializer(jsonSerializer);
+
         template.setHashValueSerializer(jsonSerializer);
 
         template.afterPropertiesSet();

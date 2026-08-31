@@ -30,8 +30,19 @@ public class Ride extends BaseEntity{
     @JsonIgnoreProperties({"rideHistory", "driveHistory"})
     private User driver;
 
-    @Column(name = "pickup_location")
-    private String pickupLocation;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "pickup_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "pickup_longitude"))
+    })
+    private LocationPing pickupLocation;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "latitude", column = @Column(name = "destination_latitude")),
+            @AttributeOverride(name = "longitude", column = @Column(name = "destination_longitude"))
+    })
+    private LocationPing destinationLocation;
 
     @Column(name = "driver_location", columnDefinition = "geometry(LineString,4326)")
     private LineString driverLocationHistory;

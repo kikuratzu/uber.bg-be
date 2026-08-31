@@ -65,4 +65,10 @@ public class DriverController {
 service.endRide(rideId);
 }
 
+@PostMapping("/goOnline/{driverId}")
+    @PreAuthorize("hasRole('DRIVER')")
+    public void goOnline(@PathVariable final UUID driverId, @RequestBody final LocationPingDTO dto) {
+        service.goOnline(driverId, dto);
+}
+
 }
