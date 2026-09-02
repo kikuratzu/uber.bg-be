@@ -28,9 +28,10 @@ public class HistoricalRouteDatabaseConsumerService {
             String rideIdStr = argument.key();
             String[] tokens = argument.value().split("\\|");
 
-            ps.setObject(1, UUID.fromString(rideIdStr));
-            ps.setDouble(2, Double.parseDouble(tokens[0]));
-            ps.setDouble(3, Double.parseDouble(tokens[1]));
+            ps.setObject(1, UUID.randomUUID());
+            ps.setObject(2, UUID.fromString(rideIdStr));
+            ps.setDouble(3, Double.parseDouble(tokens[0]));
+            ps.setDouble(4, Double.parseDouble(tokens[1]));
         }));
     }
 }
