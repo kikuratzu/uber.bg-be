@@ -6,10 +6,8 @@ import org.locationtech.jts.geom.LineString;
 import com.uber.bg.uber.bg.Enumerations.RIDE_STATUS;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.BatchSize;
 import java.time.Instant;
 
-import java.time.Instant;
 
 @Entity
 @Builder

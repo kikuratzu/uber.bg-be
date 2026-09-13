@@ -20,7 +20,7 @@ public class HistoricalRouteDatabaseConsumerService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @KafkaListener(topics = "ride-coordinates-db-store", groupId = "uber-db-writer-group")
+    @KafkaListener(topics = "ride-coordinates-db-store", groupId = "uber-db-writer-group", containerFactory = "batchFactory")
     public void consumeAndSaveToPostgres(List<ConsumerRecord<String,String>> records) {
         String sql = "INSERT INTO temp_ride_coordinates (id, ride_id, longitude, latitude, created_at) VALUES(?, ?, ?, ?, NOW())";
 

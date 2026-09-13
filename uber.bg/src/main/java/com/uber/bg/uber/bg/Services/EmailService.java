@@ -26,7 +26,7 @@ public class EmailService {
     @Retryable(
             retryFor = { MessagingException.class, IOException.class },
             maxAttempts = 4,
-            backoff = @Backoff(delay = 2000, multiplier = 2.0) // 2s, then 4s, then 8s
+            backoff = @Backoff(delay = 2000, multiplier = 2.0)
     )
     public void sendVerificationCode(String to, String subject, String sixDigitCode) {
         try {

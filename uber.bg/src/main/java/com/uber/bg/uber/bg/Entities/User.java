@@ -1,7 +1,5 @@
 package com.uber.bg.uber.bg.Entities;
 
-import com.mongodb.lang.Nullable;
-import com.uber.bg.uber.bg.Entities.BaseEntity;
 import com.uber.bg.uber.bg.Enumerations.USER_ROLE;
 import jakarta.persistence.*;
 import lombok.*;

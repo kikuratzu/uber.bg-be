@@ -165,7 +165,6 @@ public class DriverService {
         log.info("Processing go-online initialization request for driverId: {} at Lng: {}, Lat: {}",
                 driverIdStr, dto.getLongitude(), dto.getLatitude());
 
-        // 1. Store rich structured status metadata inside a Redis Hash
         Map<String, String> driverProfileMap = Map.of(
                 "status", "ONLINE",
                 "longitude", String.valueOf(dto.getLongitude()),

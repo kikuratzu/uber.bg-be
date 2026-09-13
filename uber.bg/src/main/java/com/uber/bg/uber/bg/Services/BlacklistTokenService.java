@@ -13,14 +13,10 @@ public class BlacklistTokenService {
         this.redisTemplate = redisTemplate;
     }
 
-    /**
-     * Blacklist a token by saving it to Redis with a strict Time-To-Live (TTL).
-     */
+
     public void blacklistToken(String token, long remainingTimeMillis) {
-        // Prefix the key to maintain clear cache organization namespaces
         String redisKey = "blacklist:" + token;
 
-        // Save the key with value "true" and enforce auto-deletion on expiration
         redisTemplate.opsForValue().set(
                 redisKey,
                 "true",
@@ -28,9 +24,7 @@ public class BlacklistTokenService {
         );
     }
 
-    /**
-     * Checks whether a token currently exists in the blacklisted space.
-     */
+
     public boolean isTokenBlacklisted(String token) {
         Boolean hasKey = redisTemplate.hasKey("blacklist:" + token);
         return hasKey != null && hasKey;
