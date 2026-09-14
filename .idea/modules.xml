@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/uber.bg/uber.bg.iml" filepath="$PROJECT_DIR$/uber.bg/uber.bg.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/uber.bg-BE.iml" filepath="$PROJECT_DIR$/.idea/uber.bg-BE.iml" />
     </modules>
   </component>
