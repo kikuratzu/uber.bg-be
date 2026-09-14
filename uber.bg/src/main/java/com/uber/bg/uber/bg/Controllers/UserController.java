@@ -67,15 +67,13 @@ public class UserController {
         ));
     }
 
-    @PostMapping("/request-password-change")
-    @PreAuthorize("hasAnyRole('PASSENGER','DRIVER','ADMIN')")
-    public ResponseEntity<Map<String, String>> requestPasswordChange(@RequestBody final ChangePasswordDTO dto){
-        service.initiatePasswordChange(dto);
+    @PostMapping("/request-password-change-forgotten")
+    public ResponseEntity<Map<String, String>> requestPasswordChange(@RequestParam final String email){
+        service.initiatePasswordChange(email);
         return ResponseEntity.ok(Map.of("message", "Verification code sent to your email"));
     }
 
-    @PatchMapping("/confirm-password-change")
-    @PreAuthorize("hasAnyRole('PASSENGER','DRIVER','ADMIN')")
+    @PatchMapping("/confirm-password-change-forgotten")
     public ResponseEntity<Map<String, String>> confirmPasswordChange(@RequestBody final ChangePasswordDTO dto,
                                                                      @RequestParam final String code) {
         service.changePassword(dto, code);

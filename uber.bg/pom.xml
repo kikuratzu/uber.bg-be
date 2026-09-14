@@ -38,6 +38,11 @@
 			<version>0.12.6</version>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>29.0.0</version>
+		</dependency>
 
 		<!-- Core Web & Main WebSockets Starter (Bundles web, websocket, & messaging) -->
 		<dependency>
@@ -98,6 +103,7 @@
 			<artifactId>hibernate-spatial</artifactId>
 			<version>6.5.3.Final</version> <!-- match your Hibernate version -->
 		</dependency>
+
 		<!-- Utilities -->
 		<dependency>
 			<groupId>org.springframework.retry</groupId>

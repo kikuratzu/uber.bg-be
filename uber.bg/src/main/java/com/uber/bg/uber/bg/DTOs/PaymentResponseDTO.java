@@ -1,6 +1,5 @@
 package com.uber.bg.uber.bg.DTOs;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
-public class ChangePasswordDTO extends BaseDTO {
-    private String email;
-    private String newPassword;
+public class PaymentResponseDTO {
+    private String sessionId;
+    private String sessionUrl;
 }

@@ -168,18 +168,18 @@ public class UserService {
     }
 
     @Transactional
-    public void initiatePasswordChange(final ChangePasswordDTO dto) {
-        User user = userRepository.findByEmail(dto.getEmail());
-        if (user == null || !passwordEncoder.matches(dto.getOldPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("Invalid credentials.");
+    public void initiatePasswordChange(final String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Invalid email.");
         }
+        User user = userRepository.findByEmail(email);
 
         String pin = String.format("%06d", new SecureRandom().nextInt(1000000));
 
         VerificationCode verificationData = new VerificationCode(pin, user.getEmail());
         emailService.sendVerificationCode(user.getEmail(), "Your Identity Verification Code", pin);
 
-        List<VerificationCode> oldCodes = verificationCodeRepository.findByEmail(dto.getEmail());
+        List<VerificationCode> oldCodes = verificationCodeRepository.findByEmail(email);
 
         if(!oldCodes.isEmpty()){
             verificationCodeRepository.deleteAll(oldCodes);

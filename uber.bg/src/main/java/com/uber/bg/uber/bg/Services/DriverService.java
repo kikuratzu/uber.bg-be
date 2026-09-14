@@ -1,7 +1,10 @@
 package com.uber.bg.uber.bg.Services;
 
+import com.stripe.exception.StripeException;
 import com.uber.bg.uber.bg.DTOs.ActivityDTO;
 import com.uber.bg.uber.bg.DTOs.LocationPingDTO;
+import com.uber.bg.uber.bg.DTOs.PaymentResponseDTO;
+import com.uber.bg.uber.bg.Entities.Payment;
 import com.uber.bg.uber.bg.Entities.Ride;
 import com.uber.bg.uber.bg.Entities.User;
 import com.uber.bg.uber.bg.Enumerations.RIDE_STATUS;
@@ -39,16 +42,18 @@ public class DriverService {
    private final SimpMessagingTemplate simpMessagingTemplate;
   private final KafkaTemplate<String, String> kafkaTemplate;
    private final TempRideCoordinatesRepository tempRideCoordinatesRepository;
+   private final StripeService stripeService;
 
 
     @Autowired
-    public DriverService(RideRepository rideRepository, RedisTemplate<String, Object> redisTemplate, UserRepository userRepository, SimpMessagingTemplate simpMessagingTemplate, KafkaTemplate<String, String> kafkaTemplate, TempRideCoordinatesRepository tempRideCoordinatesRepository) {
+    public DriverService(RideRepository rideRepository, RedisTemplate<String, Object> redisTemplate, UserRepository userRepository, SimpMessagingTemplate simpMessagingTemplate, KafkaTemplate<String, String> kafkaTemplate, TempRideCoordinatesRepository tempRideCoordinatesRepository, StripeService stripeService) {
         this.rideRepository = rideRepository;
         this.redisTemplate = redisTemplate;
         this.userRepository = userRepository;
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.kafkaTemplate = kafkaTemplate;
         this.tempRideCoordinatesRepository = tempRideCoordinatesRepository;
+        this.stripeService = stripeService;
     }
 
     @Transactional(readOnly = true)
@@ -151,6 +156,19 @@ public class DriverService {
 
         redisTemplate.delete("ride:history:coordinates:"+id.toString());
         redisTemplate.delete("ride:"+id.toString());
+
+        UUID passengerId = ride.getPassenger().getId();
+        try {
+
+            PaymentResponseDTO payment = stripeService.createCheckoutSession(id);
+            simpMessagingTemplate.convertAndSendToUser(
+                    String.valueOf(passengerId),
+                    "/queue/payment",
+                    payment);
+        }
+        catch (StripeException e){
+         log.error("stripe exception");
+        }
     }
 
     public void goOnline(final UUID id, final LocationPingDTO dto) {
