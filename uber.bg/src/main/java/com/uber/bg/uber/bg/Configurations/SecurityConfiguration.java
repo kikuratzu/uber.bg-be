@@ -43,7 +43,8 @@ public class SecurityConfiguration {
                             "http://localhost:5500",
                             "http://localhost:8000",
                             "http://127.0.0.1:5500",
-                            "http://127.0.0.1:8000"
+                            "http://127.0.0.1:8000",
+                            "https://localhost"
                     ));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));

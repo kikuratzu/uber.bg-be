@@ -156,19 +156,6 @@ public class DriverService {
 
         redisTemplate.delete("ride:history:coordinates:"+id.toString());
         redisTemplate.delete("ride:"+id.toString());
-
-        UUID passengerId = ride.getPassenger().getId();
-        try {
-
-            PaymentResponseDTO payment = stripeService.createCheckoutSession(id);
-            simpMessagingTemplate.convertAndSendToUser(
-                    String.valueOf(passengerId),
-                    "/queue/payment",
-                    payment);
-        }
-        catch (StripeException e){
-         log.error("stripe exception");
-        }
     }
 
     public void goOnline(final UUID id, final LocationPingDTO dto) {
