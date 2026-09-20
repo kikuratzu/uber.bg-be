@@ -55,8 +55,8 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/error", "/ws/**", "/chat/**").permitAll()
                         .requestMatchers("/topic/**", "/queue/**").permitAll()
-                        .requestMatchers("/api/passenger/**").hasRole("PASSENGER")
-                        .requestMatchers("/api/driver/**").hasRole("DRIVER")
+                        .requestMatchers("/api/auth/passenger/**").hasRole("PASSENGER")
+                        .requestMatchers("/api/auth/driver/**").hasRole("DRIVER")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

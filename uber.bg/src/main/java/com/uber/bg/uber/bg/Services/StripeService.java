@@ -67,13 +67,9 @@ public class StripeService {
         payment.setAmountInCents(session.getAmountTotal());
         paymentRepository.save(payment);
 
-        messagingTemplate.convertAndSendToUser(
-                String.valueOf(payment.getUserId()),
-                "queue/payment",
-                Map.of(
-                        "sessionsId", session.getId(),
-                        "sessionURL", session.getUrl()
-                        )
+        messagingTemplate.convertAndSend(
+                "/topic/payment/" + rideId,
+                Map.of("sessionId", session.getId(), "sessionUrl", session.getUrl())
         );
     }
 

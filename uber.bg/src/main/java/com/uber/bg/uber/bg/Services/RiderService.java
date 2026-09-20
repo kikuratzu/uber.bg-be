@@ -135,19 +135,17 @@ public class RiderService {
         return ridePage.map(this::convertToActivityDto);
 
     }
-
     private ActivityDTO convertToActivityDto(Ride ride) {
-
         return ActivityDTO.builder()
                 .rideId(ride.getId())
                 .status(ride.getStatus())
                 .date(ride.getDate())
                 .people(ride.getPeople())
-                .pickUpLongitude(ride.getPickupLocation().getLongitude())
-                .pickUpLatitude(ride.getPickupLocation().getLatitude())
-                .destinationLongitude(ride.getDestinationLocation().getLongitude())
-                .destinationLatitude(ride.getDestinationLocation().getLatitude())
-                .driverName((ride.getDriver() != null ? ride.getDriver().getUsername() : null))
+                .pickUpLongitude(ride.getPickupLocation() != null ? ride.getPickupLocation().getLongitude() : null)
+                .pickUpLatitude(ride.getPickupLocation() != null ? ride.getPickupLocation().getLatitude() : null)
+                .destinationLongitude(ride.getDestinationLocation() != null ? ride.getDestinationLocation().getLongitude() : null)
+                .destinationLatitude(ride.getDestinationLocation() != null ? ride.getDestinationLocation().getLatitude() : null)
+                .driverName(ride.getDriver() != null ? ride.getDriver().getUsername() : null)
                 .build();
     }
 
