@@ -1,7 +1,10 @@
 package com.uber.bg.uber.bg.Services;
 
 import com.uber.bg.uber.bg.DTOs.ActivityDTO;
+import com.uber.bg.uber.bg.DTOs.CarDTO;
 import com.uber.bg.uber.bg.DTOs.LocationPingDTO;
+import com.uber.bg.uber.bg.DTOs.StreamLocationForPassengerDTO;
+import com.uber.bg.uber.bg.Entities.Car;
 import com.uber.bg.uber.bg.Entities.LocationPing;
 import com.uber.bg.uber.bg.Entities.Ride;
 import com.uber.bg.uber.bg.Entities.User;
@@ -12,6 +15,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -153,5 +158,17 @@ public class RiderService {
         return Objects.requireNonNull(redisTemplate.opsForHash().get("ride:" + rideId.toString(), "status")).toString();
     }
 
+    public StreamLocationForPassengerDTO getDriverDetails(final UUID rideId) {
+        HashOperations<String, String, String> hashOps = redisTemplate.opsForHash();
+        String driverId = hashOps.get("ride:" + rideId, "driverId");
+
+        User user = userRepository.findById(rideId).orElseThrow(() -> new IllegalArgumentException("no driver with this id"));
+
+        CarDTO carDTO = new CarDTO();
+      Car car = user.getVehicles().stream().filter(x-> x.getId() == rideId).findFirst().orElseThrow(() -> new IllegalArgumentException("no car with this id"));
+
+return null;
+
+    }
 
 }

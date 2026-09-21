@@ -5,6 +5,8 @@ import com.stripe.exception.StripeException;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.uber.bg.uber.bg.DTOs.PaymentRequestDTO;
 import com.uber.bg.uber.bg.DTOs.PaymentResponseDTO;
+import com.uber.bg.uber.bg.DTOs.PaymentStatusDTO;
+import com.uber.bg.uber.bg.DTOs.PaymentSummaryDTO;
 import com.uber.bg.uber.bg.Entities.Payment;
 import com.uber.bg.uber.bg.Enumerations.PAYMENT_STATUS;
 import com.uber.bg.uber.bg.Repositories.Jpa.RideRepository;
@@ -38,11 +40,11 @@ public class StripeService {
         Stripe.apiKey = stripeSecretKey;
     }
 
-    public void createCheckoutSession(final UUID rideId) throws StripeException {
+    public PaymentSummaryDTO createCheckoutSession(final UUID rideId) throws StripeException {
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:5500/success?session_id={CHECKOUT_SESSION_ID}")
-                .setCancelUrl("http://localhost:5500")
+                .setSuccessUrl("http://localhost:5500/success.html?session_id={CHECKOUT_SESSION_ID}")
+                .setCancelUrl("http://localhost:5500/map.html")
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
                         .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
@@ -71,6 +73,26 @@ public class StripeService {
                 "/topic/payment/" + rideId,
                 Map.of("sessionId", session.getId(), "sessionUrl", session.getUrl())
         );
+
+        return new PaymentSummaryDTO(session.getId(), session.getAmountTotal(), "eur");
+    }
+
+    public PaymentStatusDTO getPaymentStatus(final String sessionId) throws StripeException {
+        Payment payment = paymentRepository.findByStripeSessionId(sessionId)
+                .orElseThrow(() -> new IllegalArgumentException("no payment with this session id."));
+
+        if (payment.getPaymentStatus() == PAYMENT_STATUS.PENDING) {
+            Session session = Session.retrieve(sessionId);
+            if ("paid".equals(session.getPaymentStatus())) {
+                payment.setPaymentStatus(PAYMENT_STATUS.SUCCESS);
+                paymentRepository.save(payment);
+            }
+        }
+
+        return new PaymentStatusDTO(
+                payment.getPaymentStatus(),
+                payment.getAmountInCents(),
+                payment.getCurrency());
     }
 
 }

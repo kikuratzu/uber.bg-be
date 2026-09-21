@@ -6,6 +6,7 @@ import com.uber.bg.uber.bg.Entities.User;
 import com.uber.bg.uber.bg.Entities.VerificationCode;
 import com.uber.bg.uber.bg.Enumerations.USER_ROLE;
 import com.uber.bg.uber.bg.Exceptions.RateLimitException;
+import com.uber.bg.uber.bg.Repositories.Jpa.CarRepository;
 import com.uber.bg.uber.bg.Repositories.Jpa.UserRepository;
 import com.uber.bg.uber.bg.Repositories.Redis.VerificationCodeRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,24 +45,24 @@ public class UserService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final VerificationCodeRepository verificationCodeRepository;
+    private final CarRepository carRepository;
 
 
     @Autowired
-    public UserService(UserRepository userRepository, EmailService emailService, VerificationCodeRepository verificationCodeRepository, RateLimitService limitService) {
+    public UserService(UserRepository userRepository, EmailService emailService, VerificationCodeRepository verificationCodeRepository, RateLimitService limitService, CarRepository carRepository) {
         this.userRepository = userRepository;
         this.emailService = emailService;
         this.verificationCodeRepository = verificationCodeRepository;
         this.limitService = limitService;
+        this.carRepository = carRepository;
     }
 
     @Transactional
-    public void createUser(final CreateUserDTO dto, final CarDTO carDTO)  {
+    public void createUser(final CreateUserDTO dto)  {
 
         if (userRepository.existsByUsername(dto.getUsername())){
             throw new IllegalArgumentException("Username is already taken");
         }
-
-
             User user = User
                 .builder()
                 .username(dto.getUsername())
@@ -73,14 +74,12 @@ public class UserService {
                 .role(("DRIVER".equalsIgnoreCase(String.valueOf(dto.getRole()))) ? USER_ROLE.DRIVER : USER_ROLE.PASSENGER)
                 .build();
 
-            if (carDTO != null) {
+            if (dto.getCar() != null) {
                 Car car = new Car();
-                BeanUtils.copyProperties(carDTO, car);
+                BeanUtils.copyProperties(dto.getCar(), car);
+                carRepository.save(car);
                 user.getVehicles().add(car);
             }
-
-
-
         userRepository.save(user);
         log.info("user created!");
 

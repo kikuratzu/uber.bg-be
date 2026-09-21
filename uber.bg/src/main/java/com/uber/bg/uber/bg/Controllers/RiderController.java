@@ -3,6 +3,7 @@ package com.uber.bg.uber.bg.Controllers;
 import com.uber.bg.uber.bg.DTOs.ActivityDTO;
 import com.uber.bg.uber.bg.DTOs.LocationPingDTO;
 import com.uber.bg.uber.bg.DTOs.RequestRideDTO;
+import com.uber.bg.uber.bg.DTOs.StreamLocationForPassengerDTO;
 import com.uber.bg.uber.bg.Entities.LocationPing;
 import com.uber.bg.uber.bg.Entities.User;
 import com.uber.bg.uber.bg.Enumerations.RIDE_STATUS;
@@ -65,6 +66,12 @@ public class RiderController {
     @PreAuthorize("hasRole('PASSENGER')")
     public String getRideStatus(@PathVariable final UUID rideId) {
         return service.getRideStatus(rideId);
+    }
+
+    @GetMapping("getDriverDetails/{rideId}")
+    @PreAuthorize("hasRole('PASSENGER')")
+    public StreamLocationForPassengerDTO getDriverDetails(@PathVariable final UUID rideId) {
+        return service.getDriverDetails(rideId);
     }
 
 }

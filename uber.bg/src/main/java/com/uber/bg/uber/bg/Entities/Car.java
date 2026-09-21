@@ -21,9 +21,9 @@ public class Car extends BaseEntity {
     private String model;
     @Column(name = "plate_number", nullable = false)
     private String plateNumber;
-    @Lob
-    @Column(name = "car_photo", nullable = true)
-    private byte[] carPhoto;
+
+    @Column(name = "car_photo", columnDefinition = "TEXT")
+    private String carPhoto;
 
     @ManyToMany(mappedBy = "vehicles")
     private Set<User> drivers = new HashSet<>();

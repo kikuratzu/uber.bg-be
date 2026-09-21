@@ -1,7 +1,5 @@
 package com.uber.bg.uber.bg.DTOs;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Lob;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 

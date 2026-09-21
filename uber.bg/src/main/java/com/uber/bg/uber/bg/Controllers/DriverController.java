@@ -1,6 +1,7 @@
 package com.uber.bg.uber.bg.Controllers;
 
 import com.uber.bg.uber.bg.DTOs.ActivityDTO;
+import com.uber.bg.uber.bg.DTOs.CarDTO;
 import com.uber.bg.uber.bg.DTOs.LocationPingDTO;
 import com.uber.bg.uber.bg.DTOs.ProfileDTO;
 import com.uber.bg.uber.bg.Entities.Ride;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -95,4 +97,18 @@ service.endRide(rideId);
                                          @PageableDefault(size = 5, sort = "date", direction = Sort.Direction.DESC) final Pageable pageable) {
         return service.getActivity(userId, pageable);
     }
+
+    @GetMapping("/getCars/{driverId}")
+    @PreAuthorize("hasRole('DRIVER')")
+    public Set<CarDTO> getCarsByDriverId(@PathVariable final UUID driverId) {
+        return service.getCarsByDriverId(driverId);
+    }
+
+    @PutMapping("/addCar/{driverId}")
+    @PreAuthorize("hasRole('DRIVER')")
+    public void addCarByDriverId(@PathVariable final UUID driverId,
+                                 @RequestBody final CarDTO carDTO) {
+        service.addCarByDriverId(driverId, carDTO);
+    }
+
 }

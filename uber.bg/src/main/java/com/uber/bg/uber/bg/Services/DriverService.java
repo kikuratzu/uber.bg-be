@@ -2,16 +2,21 @@ package com.uber.bg.uber.bg.Services;
 
 import com.stripe.exception.StripeException;
 import com.uber.bg.uber.bg.DTOs.ActivityDTO;
+import com.uber.bg.uber.bg.DTOs.CarDTO;
 import com.uber.bg.uber.bg.DTOs.LocationPingDTO;
 import com.uber.bg.uber.bg.DTOs.PaymentResponseDTO;
+import com.uber.bg.uber.bg.Entities.Car;
 import com.uber.bg.uber.bg.Entities.Payment;
 import com.uber.bg.uber.bg.Entities.Ride;
 import com.uber.bg.uber.bg.Entities.User;
 import com.uber.bg.uber.bg.Enumerations.RIDE_STATUS;
+import com.uber.bg.uber.bg.Repositories.Jpa.CarRepository;
 import com.uber.bg.uber.bg.Repositories.Jpa.RideRepository;
 import com.uber.bg.uber.bg.Repositories.Jpa.TempRideCoordinatesRepository;
 import com.uber.bg.uber.bg.Repositories.Jpa.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.C;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.net.ConnectException;
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -43,10 +49,17 @@ public class DriverService {
   private final KafkaTemplate<String, String> kafkaTemplate;
    private final TempRideCoordinatesRepository tempRideCoordinatesRepository;
    private final StripeService stripeService;
+   private final CarRepository carRepository;
 
 
     @Autowired
-    public DriverService(RideRepository rideRepository, RedisTemplate<String, Object> redisTemplate, UserRepository userRepository, SimpMessagingTemplate simpMessagingTemplate, KafkaTemplate<String, String> kafkaTemplate, TempRideCoordinatesRepository tempRideCoordinatesRepository, StripeService stripeService) {
+    public DriverService(RideRepository rideRepository,
+                         RedisTemplate<String, Object> redisTemplate,
+                         UserRepository userRepository, SimpMessagingTemplate simpMessagingTemplate,
+                         KafkaTemplate<String, String> kafkaTemplate,
+                         TempRideCoordinatesRepository tempRideCoordinatesRepository,
+                         StripeService stripeService,
+                         CarRepository carRepository) {
         this.rideRepository = rideRepository;
         this.redisTemplate = redisTemplate;
         this.userRepository = userRepository;
@@ -54,6 +67,7 @@ public class DriverService {
         this.kafkaTemplate = kafkaTemplate;
         this.tempRideCoordinatesRepository = tempRideCoordinatesRepository;
         this.stripeService = stripeService;
+        this.carRepository = carRepository;
     }
 
     @Transactional(readOnly = true)
@@ -174,6 +188,7 @@ public class DriverService {
                 "status", "ONLINE",
                 "longitude", String.valueOf(dto.getLongitude()),
                 "latitude", String.valueOf(dto.getLatitude()),
+                "activeCarId", dto.getActiveCarId(),
                 "updatedAt", java.time.Instant.now().toString()
         );
 
@@ -212,5 +227,24 @@ public class DriverService {
                 .destinationLongitude(ride.getDestinationLocation().getLongitude())
                 .destinationLatitude(ride.getDestinationLocation().getLatitude())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public Set<CarDTO> getCarsByDriverId(final UUID driverId) {
+        return userRepository.findById(driverId).orElseThrow().getVehicles().stream().map(car -> {
+            CarDTO carDTO = new CarDTO();
+            BeanUtils.copyProperties(car, carDTO);
+            return carDTO;
+        }).collect(Collectors.toSet());
+    }
+
+    @Transactional
+    public void addCarByDriverId(final UUID driverId, final CarDTO carDTO) {
+        User user = userRepository.findById(driverId).orElseThrow();
+        Car car = new Car();
+        BeanUtils.copyProperties(carDTO, car);
+        user.getVehicles().add(car);
+        carRepository.save(car);
+        userRepository.save(user);
     }
 }
