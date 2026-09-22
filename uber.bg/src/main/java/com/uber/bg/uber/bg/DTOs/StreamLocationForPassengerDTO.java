@@ -1,10 +1,6 @@
 package com.uber.bg.uber.bg.DTOs;
 
-import com.uber.bg.uber.bg.Entities.Car;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 @Getter
@@ -12,8 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @AllArgsConstructor
 @Slf4j
+@Builder
 public class StreamLocationForPassengerDTO{
     private String username;
-    private byte[] profilePhoto;
+    private String profilePhoto;
     private CarDTO carDTO;
 }

@@ -51,13 +51,14 @@ public class DriverController {
     return service.getAllAvailableRides();
 }
 
-@PostMapping("/acceptRide/{rideId}/{driverId}")
+@PostMapping("/acceptRide/{rideId}/{driverId}/{carId}")
     @PreAuthorize("hasRole('DRIVER')")
     public HttpStatus acceptRide(
         @PathVariable final UUID rideId,
-        @PathVariable final UUID driverId
+        @PathVariable final UUID driverId,
+        @PathVariable final UUID carId
         ) {
-        service.acceptRide(rideId, driverId);
+        service.acceptRide(rideId, driverId,carId);
         return HttpStatus.ACCEPTED;
 }
 

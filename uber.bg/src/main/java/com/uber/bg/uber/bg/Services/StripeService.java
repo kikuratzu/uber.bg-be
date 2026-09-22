@@ -43,7 +43,7 @@ public class StripeService {
     public PaymentSummaryDTO createCheckoutSession(final UUID rideId) throws StripeException {
         SessionCreateParams params = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
-                .setSuccessUrl("http://localhost:5500/success.html?session_id={CHECKOUT_SESSION_ID}")
+                .setSuccessUrl("http://localhost:5500/success.html?session_id={CHECKOUT_SESSION_ID}&rideId=" + rideId)
                 .setCancelUrl("http://localhost:5500/map.html")
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)

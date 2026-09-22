@@ -55,4 +55,8 @@ public class Ride extends BaseEntity{
     @Column(name = "date")
     private Instant date;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "carId")
+    private Car car;
+
 }

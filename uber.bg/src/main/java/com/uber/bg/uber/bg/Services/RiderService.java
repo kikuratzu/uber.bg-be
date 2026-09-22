@@ -9,6 +9,7 @@ import com.uber.bg.uber.bg.Entities.LocationPing;
 import com.uber.bg.uber.bg.Entities.Ride;
 import com.uber.bg.uber.bg.Entities.User;
 import com.uber.bg.uber.bg.Enumerations.RIDE_STATUS;
+import com.uber.bg.uber.bg.Repositories.Jpa.CarRepository;
 import com.uber.bg.uber.bg.Repositories.Jpa.RideRepository;
 import com.uber.bg.uber.bg.Repositories.Jpa.UserRepository;
 import org.springframework.beans.BeanUtils;
@@ -20,6 +21,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Driver;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Objects;
@@ -33,13 +35,19 @@ public class RiderService {
     private final RedisTemplate<String, Object> redisTemplate;
     private final RideRepository rideRepository;
     private final RideMatchingService rideMatchingService;
+    private final CarRepository carRepository;
     @Autowired
-    public RiderService(UserRepository userRepository, RedisTemplate<String, Object> redisTemplate, RideRepository rideRepository, RideMatchingService rideMatchingService)
-    {
+    public RiderService(UserRepository userRepository,
+                        RedisTemplate<String, Object> redisTemplate,
+                        RideRepository rideRepository,
+                        RideMatchingService rideMatchingService,
+                        CarRepository carRepository
+                        ) {
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
         this.rideRepository = rideRepository;
         this.rideMatchingService = rideMatchingService;
+        this.carRepository = carRepository;
     }
 
 @Transactional
@@ -158,6 +166,7 @@ public class RiderService {
         return Objects.requireNonNull(redisTemplate.opsForHash().get("ride:" + rideId.toString(), "status")).toString();
     }
 
+    @Transactional(readOnly = true)
     public StreamLocationForPassengerDTO getDriverDetails(final UUID rideId) {
         HashOperations<String, String, String> hashOps = redisTemplate.opsForHash();
         String driverId = hashOps.get("ride:" + rideId, "driverId");
@@ -168,7 +177,48 @@ public class RiderService {
       Car car = user.getVehicles().stream().filter(x-> x.getId() == rideId).findFirst().orElseThrow(() -> new IllegalArgumentException("no car with this id"));
 
 return null;
-
     }
+
+    @Transactional
+    public void rateDriver(final UUID rideId, final double rating) {
+        if (rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("rating must be between 1 and 5.");
+        }
+        String driverId = Objects.requireNonNull(redisTemplate.opsForHash().get("ride:"+rideId.toString(), "driverId")).toString();
+        User driver = userRepository.findById(UUID.fromString(driverId)).orElseThrow();
+        double currentRating = driver.getRating() != null ? driver.getRating() : 0.0;
+        int currentCount = driver.getNumberOfRatings() != null ? driver.getNumberOfRatings() : 0;
+
+        double newAverage = (currentRating * currentCount + rating) / (currentCount + 1);
+
+        driver.setRating(newAverage);
+        driver.setNumberOfRatings(currentCount + 1);
+        userRepository.save(driver);
+        redisTemplate.delete("ride:"+driverId);
+    }
+
+    @Transactional(readOnly = true)
+    public StreamLocationForPassengerDTO getDriverAndCarInfoAcceptedRide(final UUID rideId) {
+        if (rideId == null || rideId.toString().isBlank()){
+            throw new IllegalArgumentException("ride id is null");
+        }
+        String driverId = Objects.requireNonNull(redisTemplate.opsForHash().get("ride:"+rideId, "driverId")).toString();
+        String carId = Objects.requireNonNull(redisTemplate.opsForHash().get("ride:"+rideId, "carId")).toString();
+
+        User driver = userRepository.findById(UUID.fromString(driverId)).orElseThrow();
+        Car car = carRepository.findById(UUID.fromString(carId)).orElseThrow();
+
+        return StreamLocationForPassengerDTO
+                .builder()
+                .username(driver.getUsername())
+                .profilePhoto(driver.getProfilePhoto())
+                .carDTO(CarDTO.builder()
+                        .model(car.getModel())
+                        .brand(car.getBrand())
+                        .carPhoto(car.getCarPhoto())
+                        .build())
+                .build();
+    }
+
 
 }

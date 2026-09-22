@@ -73,6 +73,20 @@ public class RiderController {
     public StreamLocationForPassengerDTO getDriverDetails(@PathVariable final UUID rideId) {
         return service.getDriverDetails(rideId);
     }
+    @PutMapping("rateDriver/{rideId}")
+    @PreAuthorize("hasRole('PASSENGER')")
+    public void rateDriver(@PathVariable final UUID rideId,
+                           @RequestParam final double rating) {
+        service.rateDriver(rideId, rating);
+    }
+
+    @GetMapping("getRideAndCarDetails/{rideId}")
+    @PreAuthorize("hasRole('PASSENGER')")
+    public StreamLocationForPassengerDTO getRideAndCarDetails(
+            @PathVariable final UUID rideId
+    ) {
+        return service.getDriverAndCarInfoAcceptedRide(rideId);
+    }
 
 }
 

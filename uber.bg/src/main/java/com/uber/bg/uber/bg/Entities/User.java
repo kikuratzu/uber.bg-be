@@ -39,12 +39,18 @@ public class User extends BaseEntity {
     @Column(name = "createdOn")
     private LocalDateTime date = LocalDateTime.now();
 
+    @Column(name = "profile_photo")
+    private String profilePhoto;
+
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private USER_ROLE role;
 
    @Column(name= "rating")
     private Double rating;
+
+   @Column(name = "number_of_ratings")
+   private Integer numberOfRatings;
 
     @OneToMany(mappedBy = "passenger", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Ride> rideHistory = new ArrayList<>();

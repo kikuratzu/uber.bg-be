@@ -1,12 +1,9 @@
 package com.uber.bg.uber.bg.Services;
 
-import com.stripe.exception.StripeException;
 import com.uber.bg.uber.bg.DTOs.ActivityDTO;
 import com.uber.bg.uber.bg.DTOs.CarDTO;
 import com.uber.bg.uber.bg.DTOs.LocationPingDTO;
-import com.uber.bg.uber.bg.DTOs.PaymentResponseDTO;
 import com.uber.bg.uber.bg.Entities.Car;
-import com.uber.bg.uber.bg.Entities.Payment;
 import com.uber.bg.uber.bg.Entities.Ride;
 import com.uber.bg.uber.bg.Entities.User;
 import com.uber.bg.uber.bg.Enumerations.RIDE_STATUS;
@@ -15,7 +12,6 @@ import com.uber.bg.uber.bg.Repositories.Jpa.RideRepository;
 import com.uber.bg.uber.bg.Repositories.Jpa.TempRideCoordinatesRepository;
 import com.uber.bg.uber.bg.Repositories.Jpa.UserRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -114,7 +110,7 @@ public class DriverService {
     }
 
     @Transactional
-    public void acceptRide(final UUID rideId, final UUID driverId) {
+    public void acceptRide(final UUID rideId, final UUID driverId, final UUID carId) {
         Ride ride = rideRepository.findByIdWithLock(rideId).orElseThrow(() -> new IllegalArgumentException("no ride with this id"));
 
         if (ride.getStatus() != RIDE_STATUS.REQUESTED) {
@@ -125,6 +121,7 @@ public class DriverService {
 
         redisTemplate.opsForHash().put("ride:"+ride.getId().toString(), "status", ride.getStatus().name());
         redisTemplate.opsForHash().put("ride:"+ride.getId().toString(), "driverId", driverId.toString());
+        redisTemplate.opsForHash().put("ride:"+rideId, "carId",carId);
         redisTemplate.delete("passenger:to:ride:"+ride.getPassenger().getId());
         redisTemplate.opsForSet().remove("rides:open", ride.getId().toString());
         rideRepository.saveAndFlush(ride);
@@ -169,7 +166,6 @@ public class DriverService {
         tempRideCoordinatesRepository.deleteByRideId(id);
 
         redisTemplate.delete("ride:history:coordinates:"+id.toString());
-        redisTemplate.delete("ride:"+id.toString());
     }
 
     public void goOnline(final UUID id, final LocationPingDTO dto) {

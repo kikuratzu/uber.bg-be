@@ -3,8 +3,10 @@ package com.uber.bg.uber.bg.Entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Builder
@@ -19,7 +21,7 @@ public class Car extends BaseEntity {
     private String brand;
     @Column(name = "model", nullable = false)
     private String model;
-    @Column(name = "plate_number", nullable = false)
+    @Column(name = "plate_number", nullable = false, unique = true)
     private String plateNumber;
 
     @Column(name = "car_photo", columnDefinition = "TEXT")
@@ -27,4 +29,11 @@ public class Car extends BaseEntity {
 
     @ManyToMany(mappedBy = "vehicles")
     private Set<User> drivers = new HashSet<>();
+
+    @Column(name = "car_id")
+    private UUID carId;
+
+    @Column(name = "active", nullable = false)
+    @Builder.Default
+    private boolean active = true;
 }
