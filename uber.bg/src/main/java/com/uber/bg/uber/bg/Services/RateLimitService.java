@@ -11,22 +11,22 @@ import java.time.Duration;
 
 @Service
 public class RateLimitService {
-private final Cache<String, Bucket> cache = Caffeine.newBuilder().expireAfterAccess(Duration.ofMinutes(15))
-        .maximumSize(50000)
-        .build();
-
-private Bucket createNewBucket() {
-    return Bucket.builder()
-            .addLimit(Bandwidth.builder()
-                    .capacity(3)
-                    .refillGreedy(3, Duration.ofMinutes(10))
-                    .build())
+    private final Cache<String, Bucket> cache = Caffeine.newBuilder()
+            .expireAfterAccess(Duration.ofMinutes(30))   // should be >= your longest refill period, see below
+            .maximumSize(50000)
             .build();
 
-}
-public boolean tryConsume(String ipAddress) {
-    Bucket bucket = cache.get(ipAddress, k -> createNewBucket());
-    return bucket != null && bucket.tryConsume(1);
-}
+    private Bucket createNewBucket(int capacity, Duration refillPeriod) {
+        return Bucket.builder()
+                .addLimit(Bandwidth.builder()
+                        .capacity(capacity)
+                        .refillGreedy(capacity, refillPeriod)
+                        .build())
+                .build();
+    }
 
+    public boolean tryConsume(String key, int capacity, Duration refillPeriod) {
+        Bucket bucket = cache.get(key, k -> createNewBucket(capacity, refillPeriod));
+        return bucket != null && bucket.tryConsume(1);
+    }
 }

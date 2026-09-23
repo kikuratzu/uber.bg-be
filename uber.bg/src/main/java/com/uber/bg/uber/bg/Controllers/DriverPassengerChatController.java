@@ -54,7 +54,9 @@ public class DriverPassengerChatController {
     @GetMapping("/chat/getChatHistory/{rideId}")
     @PreAuthorize("hasAnyRole('DRIVER','PASSENGER','ADMIN')")
     @ResponseBody
-    public List<ChatEntityDTO> getChatHistory(@PathVariable final UUID rideId) {
+    public List<ChatEntityDTO> getChatHistory(
+            @PathVariable final UUID rideId
+    ) {
         return chatService.getChatHistory(rideId);
     }
 

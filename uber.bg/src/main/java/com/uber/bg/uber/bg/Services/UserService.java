@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.*;
 
 @Service
@@ -87,7 +88,17 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Map<UUID, String> login(final LoginUserDTO dto) {
+    public Map<UUID, String> login(final LoginUserDTO dto, HttpServletRequest request) {
+
+        String userIp = request.getHeader("X-Forwarded-For");
+        if(userIp == null || userIp.isEmpty()) {
+            userIp = request.getRemoteAddr();
+        }
+
+        if (!limitService.tryConsume("login:" +userIp, 3, Duration.ofMinutes(10))) {
+            throw new RateLimitException("Too many verification requests. Please wait before trying again.");
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.getUsername(), dto.getPassword())
         );
@@ -215,7 +226,7 @@ public class UserService {
             userIp = request.getRemoteAddr();
         }
 
-        if (!limitService.tryConsume(userIp)) {
+        if (!limitService.tryConsume("resendCode:"+userIp, 3, Duration.ofMinutes(10))) {
             throw new RateLimitException("Too many verification requests. Please wait before trying again.");
         }
 

@@ -23,12 +23,17 @@ public class PaymentController {
 
     @PostMapping("/createPayment/{rideId}")
     @PreAuthorize("hasRole('DRIVER')")
-    public PaymentSummaryDTO createPayment(@PathVariable final UUID rideId) throws StripeException {
+    public PaymentSummaryDTO createPayment(
+            @PathVariable final UUID rideId
+    ) throws StripeException {
       return stripeService.createCheckoutSession(rideId);
     }
+
     @GetMapping("/status/{sessionId}")
     @PreAuthorize("hasRole('DRIVER')")
-    public PaymentStatusDTO getPaymentStatus(@PathVariable final String sessionId) throws StripeException {
+    public PaymentStatusDTO getPaymentStatus(
+            @PathVariable final String sessionId
+    ) throws StripeException {
         return stripeService.getPaymentStatus(sessionId);
     }
 }

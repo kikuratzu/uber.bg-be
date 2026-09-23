@@ -5,6 +5,7 @@ import com.uber.bg.uber.bg.DTOs.CarDTO;
 import com.uber.bg.uber.bg.DTOs.LocationPingDTO;
 import com.uber.bg.uber.bg.DTOs.ProfileDTO;
 import com.uber.bg.uber.bg.Entities.Ride;
+import com.uber.bg.uber.bg.Entities.UserPrincipal;
 import com.uber.bg.uber.bg.Services.DriverService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -16,6 +17,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.charset.StandardCharsets;
@@ -41,7 +44,9 @@ public class DriverController {
 
 @GetMapping("/getRide/{rideId}")
     @PreAuthorize("hasRole('DRIVER')")
-    public Map<String, Object> getRide(@PathVariable final UUID rideId) {
+    public Map<String, Object> getRide(
+            @PathVariable final UUID rideId
+) {
         return service.getRideDetails(rideId);
     }
 
@@ -51,24 +56,25 @@ public class DriverController {
     return service.getAllAvailableRides();
 }
 
-@PostMapping("/acceptRide/{rideId}/{driverId}/{carId}")
+@PostMapping("/acceptRide/{rideId}/{carId}")
     @PreAuthorize("hasRole('DRIVER')")
     public HttpStatus acceptRide(
         @PathVariable final UUID rideId,
-        @PathVariable final UUID driverId,
-        @PathVariable final UUID carId
+        @PathVariable final UUID carId,
+        @AuthenticationPrincipal UserPrincipal userPrincipal
         ) {
-        service.acceptRide(rideId, driverId,carId);
+        service.acceptRide(rideId, userPrincipal.getId() ,carId);
         return HttpStatus.ACCEPTED;
 }
 
-@PostMapping("/streamLocation/{rideId}/{driverId}")
+@PostMapping("/streamLocation/{rideId}")
     @PreAuthorize("hasRole('DRIVER')")
     public void streamLocation(
-            @PathVariable final UUID rideId,
-            @PathVariable final UUID driverId,
-            @RequestBody final LocationPingDTO locationPingDTO) {
-    ProducerRecord<String, LocationPingDTO> record = new ProducerRecord<>(TOPIC, driverId.toString(), locationPingDTO);
+        @PathVariable final UUID rideId,
+        @RequestBody final LocationPingDTO locationPingDTO,
+        @AuthenticationPrincipal UserPrincipal userPrincipal
+        ) {
+    ProducerRecord<String, LocationPingDTO> record = new ProducerRecord<>(TOPIC, userPrincipal.getId().toString(), locationPingDTO);
     record.headers().add("rideId", rideId.toString().getBytes(StandardCharsets.UTF_8));
 
     this.kafkaTemplate.send(record);
@@ -76,40 +82,53 @@ public class DriverController {
 
 @DeleteMapping("/endRide/{rideId}")
     @PreAuthorize("hasRole('DRIVER')")
-    public void endRide(@PathVariable final UUID rideId) {
+    public void endRide(
+            @PathVariable final UUID rideId
+) {
 service.endRide(rideId);
 }
 
-@PostMapping("/goOnline/{driverId}")
+@PostMapping("/goOnline")
     @PreAuthorize("hasRole('DRIVER')")
-    public void goOnline(@PathVariable final UUID driverId, @RequestBody final LocationPingDTO dto) {
-        service.goOnline(driverId, dto);
+    public void goOnline(
+            @RequestBody final LocationPingDTO dto,
+            @AuthenticationPrincipal UserPrincipal userPrincipal
+) {
+        service.goOnline(userPrincipal.getId(), dto);
 }
 
-@DeleteMapping("/goOffline/{driverId}")
+@DeleteMapping("/goOffline")
     @PreAuthorize("hasRole('DRIVER')")
-    public void goOffline(@PathVariable final UUID driverId) {
-        service.goOffline(driverId);
+    public void goOffline(
+            @AuthenticationPrincipal UserPrincipal userPrincipal
+) {
+        service.goOffline(userPrincipal.getId());
 }
 
-  @GetMapping("/getActivity/{userId}")
+  @GetMapping("/getActivity")
     @PreAuthorize("hasRole('DRIVER')")
-    public Page<ActivityDTO> getActivity(@PathVariable final UUID userId,
-                                         @PageableDefault(size = 5, sort = "date", direction = Sort.Direction.DESC) final Pageable pageable) {
-        return service.getActivity(userId, pageable);
+    public Page<ActivityDTO> getActivity(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @PageableDefault(size = 5, sort = "date", direction = Sort.Direction.DESC) final Pageable pageable
+  ) {
+        return service.getActivity(userPrincipal.getId(), pageable);
     }
 
-    @GetMapping("/getCars/{driverId}")
+    @GetMapping("/getCars")
     @PreAuthorize("hasRole('DRIVER')")
-    public Set<CarDTO> getCarsByDriverId(@PathVariable final UUID driverId) {
-        return service.getCarsByDriverId(driverId);
+    public Set<CarDTO> getCarsByDriverId(
+            @AuthenticationPrincipal UserPrincipal userPrincipal
+    ) {
+        return service.getCarsByDriverId(userPrincipal.getId());
     }
 
-    @PutMapping("/addCar/{driverId}")
+    @PutMapping("/addCar")
     @PreAuthorize("hasRole('DRIVER')")
-    public void addCarByDriverId(@PathVariable final UUID driverId,
-                                 @RequestBody final CarDTO carDTO) {
-        service.addCarByDriverId(driverId, carDTO);
+    public void addCarByDriverId(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestBody final CarDTO carDTO
+    ) {
+        service.addCarByDriverId(userPrincipal.getId(), carDTO);
     }
 
 }
